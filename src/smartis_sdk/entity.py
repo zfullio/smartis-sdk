@@ -1,5 +1,4 @@
 import json
-from abc import abstractmethod
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -91,7 +90,6 @@ class Filter:
         self.operand = operand
 
 
-@abstractmethod
 class Payload:
     """Базовый класс параметров для генерации параметров к запросам"""
 
@@ -111,7 +109,6 @@ class Payload:
     def __str__(self):
         return f"{self.datetime_from}//{self.datetime_to}"
 
-    @abstractmethod
     def to_json(self) -> str:
         payload = {"project": self.project,
                    "metrics": self.metrics,
