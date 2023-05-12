@@ -11,6 +11,7 @@ from .entity import Campaigns, Campaign
 from .entity import Channels, Placements
 from .entity import Keywords, Keyword
 from .common import Method
+from .errors import ApiLimitError
 import logging
 
 
@@ -90,25 +91,31 @@ class Client:
 
     def status_code_handler(self, response: requests.Response, retry: int) -> None:
         """Обработка статус кодов"""
-        if response.status_code == 429:
-            if int(response.headers['X-Ratelimit-Remaining']) == 0:
+
+        match response.status_code:
+            case 200:
+                return
+            case 400 | 403:
+                resp_body: dict = response.json()
+                message = resp_body.get("error")
+                raise ConnectionError(f"{response.status_code}:{response.text}. details: {message}")
+            case 429:
+                if int(response.headers['X-Ratelimit-Remaining']) == 0:
+                    logging.warning(f"Status code: {response.status_code}. "
+                                    f"Причина: {response.reason}. "
+                                    f"Пауза: {response.headers['Retry-After']} с.")
+                    raise ApiLimitError(int(response.headers['Retry-After']), response.text)
+            case 500 | 502:
                 logging.warning(f"Status code: {response.status_code}. "
                                 f"Причина: {response.reason}. "
-                                f"Пауза: {response.headers['Retry-After']} с.")
-                time.sleep(int(response.headers['Retry-After']))
-                logging.info(f"Повтор запроса: {(self.TRY_REQUEST - retry + 1)}"
-                             f"/{self.TRY_REQUEST}")
-        elif response.status_code in {500, 502}:
-            logging.warning(f"Status code: {response.status_code}. "
-                            f"Причина: {response.reason}. "
-                            f"Пауза: 60 с.")
-            time.sleep(60)
-        elif response.status_code != 200:
-            logging.critical(f" Необработанное исключение. "
-                             f"Status code: {response.status_code}. "
-                             f"Причина: {response.reason}. ")
-            logging.info(response.headers)
-            time.sleep(60)
+                                f"Пауза: 60 с.")
+                time.sleep(60)
+            case _:
+                logging.warning(f" Необработанное исключение. "
+                                f"Status code: {response.status_code}. "
+                                f"Причина: {response.reason}. ")
+                logging.info(response.headers)
+                time.sleep(60)
 
     def get_report(self, payload: Payload, retry: int = TRY_REQUEST) -> requests.Response:
         """Выполнение запросов с обработкой ошибок"""
@@ -117,21 +124,22 @@ class Client:
             time.sleep(self.REQUEST_PAUSE)
             answer = requests.post(f"{self.host}reports/getReport", headers=self.header, data=payload_json)
             self.status_code_handler(answer, self.TRY_REQUEST)
+        except ApiLimitError as apiErr:
+            if retry == 0:
+                return self.retry_get_report(payload)
+            logging.warning(f"error: {apiErr.message}")
+            logging.info(f"Повтор запроса: {self.TRY_REQUEST - retry + 1}/{self.TRY_REQUEST}")
+            return self.get_report(payload, retry=retry - 1)
         except Exception as er:
-            if retry != 0:
-                logging.warning(f"Необработанное исключение. error: {er}")
-                logging.info(f"Повтор запроса: {self.TRY_REQUEST - retry + 1}/{self.TRY_REQUEST}")
-                return self.get_report(payload, retry=retry - 1)
-            else:
-                logging.info("Количество ошибок больше заданного! Пауза 10 мин")
-                time.sleep(self.FORCE_PAUSE)
-                return self.get_report(payload)
+            if retry == 0:
+                return self.retry_get_report(payload)
+            logging.warning(f"Необработанное исключение. error: {er}")
+            logging.info(f"Повтор запроса: {self.TRY_REQUEST - retry + 1}/{self.TRY_REQUEST}")
+            return self.get_report(payload, retry=retry - 1)
         else:
-            if answer.status_code == 200:
-                return answer
-            if retry:
-                return self.get_report(payload, retry=(retry - 1))
-            logging.warning(f"Количество ошибок подряд достигло {self.TRY_REQUEST}, "
-                            f"пауза {self.FORCE_PAUSE / 60} минут")
-            time.sleep(self.FORCE_PAUSE)
-            self.get_report(payload)
+            return answer
+
+    def retry_get_report(self, payload: Payload) -> requests.Response:
+        logging.info("Количество ошибок больше заданного! Пауза 10 мин")
+        time.sleep(self.FORCE_PAUSE)
+        return self.get_report(payload)
