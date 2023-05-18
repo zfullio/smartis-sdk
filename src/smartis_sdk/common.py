@@ -39,8 +39,19 @@ class FilterCategory(Enum):
 
 
 class AttributionModel(Enum):
-    LINEAR = 3
-    LINEAR_WITH_POSTVIEW = 10
+    LAST_CLICK = 1  # Последнее касание
+    FIRST_CLICK = 2  # Первое касание
+    LINEAR = 3  # Линейное распределение
+    BY_POSITION = 4  # На основе позиции
+    FIRST_COMMUNICATION = 5  # Первое обращение
+    LINEAR_BY_COMMUNICATION = 6  # Линейное распределение на обращениях
+    LINEAR_WITH_POSTVIEW = 10  # Линейное распределение с учетом postview
+    LAST_CLICK_WITH_POSTVIEW = 15  # Последнее касание с учетом postview
+    FIRST_CLICK_WITH_POSTVIEW = 16  # Первое касание с учетом postview
+    NOT_FIRST_NOT_LAST_CLICK = 17  # Не первое и не последнее
+    LAST_COMMUNICATION = 22  # Последнее обращение
+    BY_POSITION_WITH_POSTVIEW = 23  # На основе позиции с учетом postview
+
 
 
 class TypeReport(Enum):
