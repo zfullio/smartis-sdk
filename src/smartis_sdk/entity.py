@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .common import AttributionModel, GroupBy, TypeReport, FilterCategory
 from .utils import normalize_date
@@ -13,7 +13,7 @@ class ChannelItem(BaseModel):
 
 
 class Channels(BaseModel):
-    channels: list[ChannelItem]
+    items: list[ChannelItem] = Field(alias='channels')
 
 
 class Channel(BaseModel):
@@ -29,7 +29,7 @@ class Placement(BaseModel):
 
 
 class Placements(BaseModel):
-    placements: list[Placement]
+    items: list[Placement] = Field(alias='placements')
 
 
 class Campaign(BaseModel):
@@ -39,7 +39,7 @@ class Campaign(BaseModel):
 
 
 class Campaigns(BaseModel):
-    campaigns: list[Campaign]
+    items: list[Campaign] = Field(alias='campaigns')
 
 
 class Keyword(BaseModel):
@@ -48,7 +48,26 @@ class Keyword(BaseModel):
 
 
 class Keywords(BaseModel):
-    keywords: list[Keyword]
+    items: list[Keyword]= Field(alias='keywords')
+
+
+class CustomField(BaseModel):
+    id: int
+    crm_account_id: int
+    element_type_id: int
+    custom_field_title: str
+    field_type_id: int
+    is_multiple: int
+    group_id: int
+    description: str
+    status: int
+    is_filter: int
+    filter_param_id: int
+    default_visibility: int
+
+
+class CrmCustomFields(BaseModel):
+    items: list[CustomField] = Field(alias='crmCustomFields')
 
 
 class Ad(BaseModel):
@@ -69,7 +88,7 @@ class Ad(BaseModel):
 
 
 class Ads(BaseModel):
-    ads: list[Ad]
+    items: list[Ad] = Field(alias='ads')
 
 
 class Attribution:

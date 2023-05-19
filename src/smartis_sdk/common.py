@@ -22,6 +22,7 @@ class Method(Enum):
     get_campaigns = MethodFields("reports/getCampaigns", "", "")
     get_ads = MethodFields("reports/getAds", "", "")
     get_keywords = MethodFields("reports/getKeywords", "", "")
+    get_crm_custom_fields = MethodFields("crm/crmCustomField/get", "crmCustomFields", "")
 
 
 class GroupBy(Enum):
@@ -51,7 +52,6 @@ class AttributionModel(Enum):
     NOT_FIRST_NOT_LAST_CLICK = 17  # Не первое и не последнее
     LAST_COMMUNICATION = 22  # Последнее обращение
     BY_POSITION_WITH_POSTVIEW = 23  # На основе позиции с учетом postview
-
 
 
 class TypeReport(Enum):

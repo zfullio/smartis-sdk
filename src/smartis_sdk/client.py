@@ -6,7 +6,7 @@ from enum import Enum
 import requests
 from pydantic import ValidationError, BaseModel
 
-from .entity import Ads, Ad, Payload
+from .entity import Ads, Ad, Payload, CrmCustomFields, CustomField
 from .entity import Campaigns, Campaign
 from .entity import Channels, Placements
 from .entity import Keywords, Keyword
@@ -19,13 +19,43 @@ class ContentType(Enum):
     application = "application/json"
 
 
+def status_code_handler(response: requests.Response, retry: int) -> None:
+    """Обработка статус кодов"""
+
+    match response.status_code:
+        case 200:
+            return
+        case 400 | 403:
+            resp_body: dict = response.json()
+            message = resp_body.get("error")
+            raise ConnectionError(f"{response.status_code}:{response.text}. details: {message}")
+        case 429:
+            if int(response.headers['X-Ratelimit-Remaining']) == 0:
+                logging.warning(f"Status code: {response.status_code}. "
+                                f"Причина: {response.reason}. "
+                                f"Пауза: {response.headers['Retry-After']} с.")
+                raise ApiLimitError(int(response.headers['Retry-After']), response.text)
+        case 500 | 502:
+            logging.warning(f"Status code: {response.status_code}. "
+                            f"Причина: {response.reason}. "
+                            f"Пауза: 60 с.")
+            time.sleep(60)
+        case _:
+            logging.warning(f" Необработанное исключение. "
+                            f"Status code: {response.status_code}. "
+                            f"Причина: {response.reason}. ")
+            logging.info(response.headers)
+            time.sleep(60)
+
+
 class Client:
     TRY_REQUEST = 10
     REQUEST_PAUSE = 1
     FORCE_PAUSE = 600
 
-    def __init__(self, api_key: str, dev: bool = False) -> None:
+    def __init__(self, api_key: str, crm_token: str = None, dev: bool = False) -> None:
         self.api_key = api_key
+        self.crm_token = crm_token
         self.header = {'Authorization': f"Bearer {api_key}", "Content-Type": ContentType.application.value, }
         if dev:
             self.host = "https://dev.smartis.bi/api/"
@@ -43,7 +73,7 @@ class Client:
             resp = requests.post(f"{self.host}{method.value.method}", headers=self.header)
 
         if resp.status_code != 200:
-            raise ConnectionError(f"status code: {resp.status_code}")
+            raise ConnectionError(f"{resp.status_code} {resp.reason}")
 
         return resp
 
@@ -64,20 +94,24 @@ class Client:
     def get_campaigns(self, campaigns_ids: list) -> list[Campaign]:
         all_campaigns: list[Campaign] = []
         items: Campaigns = self._get_entity(campaigns_ids, Method.get_campaigns, Campaigns)
-        all_campaigns.extend(items.campaigns)
+        all_campaigns.extend(items.items)
         return all_campaigns
 
     def get_ads(self, ads_ids: list) -> list[Ad]:
         all_ads: list[Ad] = []
         items: Ads = self._get_entity(ads_ids, Method.get_ads, Ads)
-        all_ads.extend(items.ads)
+        all_ads.extend(items.items)
         return all_ads
 
     def _get_entity(self, ids: list, method: Method, model: BaseModel) -> BaseModel:
-        ids = json.dumps({"ids": ids})
-        response = self._prepare(method, parameters=ids)
+        params = {"ids": ids}
+        if method == Method.get_crm_custom_fields:
+            params["smartis_crm_token"] = self.crm_token
+        params_json = json.dumps(params)
+        response = self._prepare(method, parameters=params_json)
         if response.status_code != 200:
             raise ConnectionError(f"status code: {str(response.status_code)}")
+        print(response.json())
         try:
             return model.model_validate(response.json())
         except ValidationError as e:
@@ -86,36 +120,16 @@ class Client:
     def get_keywords(self, keywords_ids: list) -> list[Keyword]:
         all_keywords: list[Keyword] = []
         items: Keywords = self._get_entity(keywords_ids, Method.get_keywords, Keywords)
-        all_keywords.extend(items.keywords)
+        all_keywords.extend(items.items)
         return all_keywords
 
-    def status_code_handler(self, response: requests.Response, retry: int) -> None:
-        """Обработка статус кодов"""
-
-        match response.status_code:
-            case 200:
-                return
-            case 400 | 403:
-                resp_body: dict = response.json()
-                message = resp_body.get("error")
-                raise ConnectionError(f"{response.status_code}:{response.text}. details: {message}")
-            case 429:
-                if int(response.headers['X-Ratelimit-Remaining']) == 0:
-                    logging.warning(f"Status code: {response.status_code}. "
-                                    f"Причина: {response.reason}. "
-                                    f"Пауза: {response.headers['Retry-After']} с.")
-                    raise ApiLimitError(int(response.headers['Retry-After']), response.text)
-            case 500 | 502:
-                logging.warning(f"Status code: {response.status_code}. "
-                                f"Причина: {response.reason}. "
-                                f"Пауза: 60 с.")
-                time.sleep(60)
-            case _:
-                logging.warning(f" Необработанное исключение. "
-                                f"Status code: {response.status_code}. "
-                                f"Причина: {response.reason}. ")
-                logging.info(response.headers)
-                time.sleep(60)
+    def get_crm_custom_field(self, fields_ids: list) -> list[CustomField]:
+        if self.crm_token is None:
+            raise ValueError("Not found crm token")
+        all_fields: list[CustomField] = []
+        items: CrmCustomFields = self._get_entity(fields_ids, Method.get_crm_custom_fields, CrmCustomFields)
+        all_fields.extend(items.items)
+        return all_fields
 
     def get_report(self, payload: Payload, retry: int = TRY_REQUEST) -> requests.Response:
         """Выполнение запросов с обработкой ошибок"""
@@ -123,7 +137,7 @@ class Client:
         try:
             time.sleep(self.REQUEST_PAUSE)
             answer = requests.post(f"{self.host}reports/getReport", headers=self.header, data=payload_json)
-            self.status_code_handler(answer, self.TRY_REQUEST)
+            status_code_handler(answer, self.TRY_REQUEST)
         except ApiLimitError as apiErr:
             if retry == 0:
                 return self.retry_get_report(payload)
