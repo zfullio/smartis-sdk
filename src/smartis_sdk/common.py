@@ -23,6 +23,7 @@ class Method(Enum):
     get_ads = MethodFields("reports/getAds", "", "")
     get_keywords = MethodFields("reports/getKeywords", "", "")
     get_crm_custom_fields = MethodFields("crm/crmCustomField/get", "crmCustomFields", "")
+    get_crm_custom_field_groups = MethodFields("crm/crmCustomFieldGroup/get", "crmCustomFieldGroups", "")
 
 
 class GroupBy(Enum):

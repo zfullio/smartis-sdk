@@ -6,13 +6,15 @@ from enum import Enum
 import requests
 from pydantic import ValidationError, BaseModel
 
-from .entity import Ads, Ad, Payload, CrmCustomFields, CustomField
+from .entity import Ads, Ad, Payload, CrmCustomFields, CrmCustomField, CrmCustomFieldGroups
 from .entity import Campaigns, Campaign
 from .entity import Channels, Placements
 from .entity import Keywords, Keyword
 from .common import Method
 from .errors import ApiLimitError
 import logging
+
+from .utils import clean_column_ids
 
 
 class ContentType(Enum):
@@ -105,13 +107,12 @@ class Client:
 
     def _get_entity(self, ids: list, method: Method, model: BaseModel) -> BaseModel:
         params = {"ids": ids}
-        if method == Method.get_crm_custom_fields:
+        if method in [Method.get_crm_custom_fields, Method.get_crm_custom_field_groups]:
             params["smartis_crm_token"] = self.crm_token
         params_json = json.dumps(params)
         response = self._prepare(method, parameters=params_json)
         if response.status_code != 200:
             raise ConnectionError(f"status code: {str(response.status_code)}")
-        print(response.json())
         try:
             return model.model_validate(response.json())
         except ValidationError as e:
@@ -123,11 +124,21 @@ class Client:
         all_keywords.extend(items.items)
         return all_keywords
 
-    def get_crm_custom_field(self, fields_ids: list) -> list[CustomField]:
+    def get_crm_custom_fields(self, fields_ids: list) -> list[CrmCustomField]:
         if self.crm_token is None:
             raise ValueError("Not found crm token")
-        all_fields: list[CustomField] = []
+        fields_ids = clean_column_ids(fields_ids, "field_")
+        all_fields: list[CrmCustomField] = []
         items: CrmCustomFields = self._get_entity(fields_ids, Method.get_crm_custom_fields, CrmCustomFields)
+        all_fields.extend(items.items)
+        return all_fields
+
+    def get_crm_custom_field_groups(self, fields_ids: list) -> list[CrmCustomField]:
+        if self.crm_token is None:
+            raise ValueError("Not found crm token")
+        fields_ids = clean_column_ids(fields_ids, "field_cf_group_")
+        all_fields: list[CrmCustomField] = []
+        items: CrmCustomFields = self._get_entity(fields_ids, Method.get_crm_custom_field_groups, CrmCustomFieldGroups)
         all_fields.extend(items.items)
         return all_fields
 
@@ -157,3 +168,5 @@ class Client:
         logging.info("Количество ошибок больше заданного! Пауза 10 мин")
         time.sleep(self.FORCE_PAUSE)
         return self.get_report(payload)
+
+

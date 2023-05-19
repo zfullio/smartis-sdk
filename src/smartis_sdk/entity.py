@@ -51,7 +51,7 @@ class Keywords(BaseModel):
     items: list[Keyword]= Field(alias='keywords')
 
 
-class CustomField(BaseModel):
+class CrmCustomField(BaseModel):
     id: int
     crm_account_id: int
     element_type_id: int
@@ -65,9 +65,19 @@ class CustomField(BaseModel):
     filter_param_id: int
     default_visibility: int
 
+class CrmCustomFieldGroup(BaseModel):
+    id: int
+    title: str
+    crm_account_id: int
+    default_visibility: int
+    sort: int
+
 
 class CrmCustomFields(BaseModel):
-    items: list[CustomField] = Field(alias='crmCustomFields')
+    items: list[CrmCustomField] = Field(alias='crmCustomFields')
+
+class CrmCustomFieldGroups(BaseModel):
+    items: list[CrmCustomFieldGroup] = Field(alias='crmCustomFieldGroups')
 
 
 class Ad(BaseModel):
