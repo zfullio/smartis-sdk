@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smartis_sdk"
-pversion = "0.5.0"
+version = "0.6.0"
 description = "SDK для Smartis API"
 license = "MIT"
 authors = ["viktor <vi.dave@yandex.ru>"]
@@ -9,9 +9,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-requests = "^2.30.0"
+requests = "^2"
 pydantic = ">=2.0a1"
-pandas = "^2.0.1"
+pandas = "^2"
 
 [tool.poetry.dev-dependencies]
 coverage = "^7"
