@@ -14,7 +14,7 @@ from .common import Method
 from .errors import ApiLimitError
 import logging
 
-from .utils import clean_column_ids
+from .utils import clean_column_ids, ColumnType
 
 
 class ContentType(Enum):
@@ -127,7 +127,7 @@ class Client:
     def get_crm_custom_fields(self, fields_ids: list) -> list[CrmCustomField]:
         if self.crm_token is None:
             raise ValueError("Not found crm token")
-        fields_ids = clean_column_ids(fields_ids, "field_")
+        fields_ids = clean_column_ids(fields_ids, ColumnType.CustomField)
         all_fields: list[CrmCustomField] = []
         items: CrmCustomFields = self._get_entity(fields_ids, Method.get_crm_custom_fields, CrmCustomFields)
         all_fields.extend(items.items)
@@ -136,7 +136,7 @@ class Client:
     def get_crm_custom_field_groups(self, fields_ids: list) -> list[CrmCustomField]:
         if self.crm_token is None:
             raise ValueError("Not found crm token")
-        fields_ids = clean_column_ids(fields_ids, "field_cf_group_")
+        fields_ids = clean_column_ids(fields_ids, ColumnType.CustomFieldGroup)
         all_fields: list[CrmCustomField] = []
         items: CrmCustomFields = self._get_entity(fields_ids, Method.get_crm_custom_field_groups, CrmCustomFieldGroups)
         all_fields.extend(items.items)
