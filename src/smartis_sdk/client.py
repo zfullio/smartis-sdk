@@ -1,19 +1,19 @@
 import json
+import logging
 import time
 from enum import Enum
 
 import requests
 from pydantic import ValidationError
 
-from .entity import Ads, Ad, Payload, CrmCustomFields, CrmCustomField, CrmCustomFieldGroups, Keyword
-from .entity import FieldsRootEntity, FieldsEntity, RootEntity, Entity
+from .common import Method
+from .entity import Ads, Ad, Payload, Keyword
+from .entity import CrmCustomFields, CrmCustomField, CrmCustomFieldGroups, CrmCustomFieldGroup
 from .entity import Campaigns, Campaign
 from .entity import Channels, Placements
+from .entity import FieldsRootEntity, FieldsEntity, RootEntity
 from .entity import Keywords
-from .common import Method
 from .errors import ApiLimitError, ApiInternalError
-import logging
-
 from .utils import clean_column_ids, ColumnType
 
 
@@ -125,7 +125,7 @@ class Client:
     def get_crm_custom_fields(self, fields_ids: list) -> list[CrmCustomField]:
         return self._get_fields(Method.GET_CRM_CUSTOM_FIELDS, CrmCustomFields, fields_ids)
 
-    def get_crm_custom_field_groups(self, fields_ids: list) -> list[CrmCustomFieldGroups]:
+    def get_crm_custom_field_groups(self, fields_ids: list) -> list[CrmCustomFieldGroup]:
         return self._get_fields(Method.GET_CRM_CUSTOM_FIELD_GROUPS, CrmCustomFieldGroups, fields_ids)
 
     def get_report(self, payload: Payload, retry: int = TRY_REQUEST) -> requests.Response:

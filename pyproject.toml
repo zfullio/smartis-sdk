@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smartis_sdk"
-version = "0.7.0"
+version = "0.7.1"
 description = "SDK для Smartis API"
 license = "MIT"
 authors = ["viktor <vi.dave@yandex.ru>"]
