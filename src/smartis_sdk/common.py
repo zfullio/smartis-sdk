@@ -13,17 +13,17 @@ MethodFields = namedtuple("MethodFields", "method location id")
 
 
 class Method(Enum):
-    get_projects = MethodFields("projects/get", "projects", "project")
-    get_metrics = MethodFields("metrics/get", "metrics", "code")
-    get_groupings = MethodFields("reports/getGroupings", "groupings", "code")
-    get_attributions = MethodFields("reports/getModelAttributions", "modelAttributions", "id")
-    get_channels = MethodFields("reports/getChannels", "", "")
-    get_placements = MethodFields("reports/getPlacements", "", "")
-    get_campaigns = MethodFields("reports/getCampaigns", "", "")
-    get_ads = MethodFields("reports/getAds", "", "")
-    get_keywords = MethodFields("reports/getKeywords", "", "")
-    get_crm_custom_fields = MethodFields("crm/crmCustomField/get", "crmCustomFields", "")
-    get_crm_custom_field_groups = MethodFields("crm/crmCustomFieldGroup/get", "crmCustomFieldGroups", "")
+    GET_PROJECTS = MethodFields("projects/get", "projects", "project")
+    GET_METRICS = MethodFields("metrics/get", "metrics", "code")
+    GET_GROUPINGS = MethodFields("reports/getGroupings", "groupings", "code")
+    GET_ATTRIBUTIONS = MethodFields("reports/getModelAttributions", "modelAttributions", "id")
+    GET_CHANNELS = MethodFields("reports/getChannels", "", "")
+    GET_PLACEMENTS = MethodFields("reports/getPlacements", "", "")
+    GET_CAMPAIGNS = MethodFields("reports/getCampaigns", "", "")
+    GET_ADS = MethodFields("reports/getAds", "", "")
+    GET_KEYWORDS = MethodFields("reports/getKeywords", "", "")
+    GET_CRM_CUSTOM_FIELDS = MethodFields("crm/crmCustomField/get", "crmCustomFields", "")
+    GET_CRM_CUSTOM_FIELD_GROUPS = MethodFields("crm/crmCustomFieldGroup/get", "crmCustomFieldGroups", "")
 
 
 class GroupBy(Enum):
@@ -43,16 +43,16 @@ class FilterCategory(Enum):
 class AttributionModel(Enum):
     LAST_CLICK = 1  # Последнее касание
     FIRST_CLICK = 2  # Первое касание
-    LINEAR = 3  # Линейное распределение
+    LINEAR = 3  # Линейное распределение
     BY_POSITION = 4  # На основе позиции
     FIRST_COMMUNICATION = 5  # Первое обращение
-    LINEAR_BY_COMMUNICATION = 6  # Линейное распределение на обращениях
-    LINEAR_WITH_POSTVIEW = 10  # Линейное распределение с учетом postview
-    LAST_CLICK_WITH_POSTVIEW = 15  # Последнее касание с учетом postview
-    FIRST_CLICK_WITH_POSTVIEW = 16  # Первое касание с учетом postview
+    LINEAR_BY_COMMUNICATION = 6  # Линейное распределение на обращениях
+    LINEAR_WITH_POSTVIEW = 10  # Линейное распределение с учетом post-view
+    LAST_CLICK_WITH_POSTVIEW = 15  # Последнее касание с учетом post-view
+    FIRST_CLICK_WITH_POSTVIEW = 16  # Первое касание с учетом post-view
     NOT_FIRST_NOT_LAST_CLICK = 17  # Не первое и не последнее
     LAST_COMMUNICATION = 22  # Последнее обращение
-    BY_POSITION_WITH_POSTVIEW = 23  # На основе позиции с учетом postview
+    BY_POSITION_WITH_POSTVIEW = 23  # На основе позиции с учетом post-view
 
 
 class TypeReport(Enum):

@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -99,6 +100,12 @@ class Ad(BaseModel):
 
 class Ads(BaseModel):
     items: list[Ad] = Field(alias='ads')
+
+
+Entity = TypeVar('Entity', ChannelItem, Placement, Campaign, Keyword, CrmCustomField, CrmCustomFieldGroup, Ad)
+FieldsEntity = TypeVar('FieldsEntity', CrmCustomField, CrmCustomFieldGroup)
+RootEntity = TypeVar('RootEntity', Channels, Placements, Campaigns, Keywords, CrmCustomFields, CrmCustomFieldGroups, Ads)
+FieldsRootEntity = TypeVar('FieldsRootEntity', CrmCustomFields, CrmCustomFieldGroups)
 
 
 class Attribution:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smartis_sdk"
-version = "0.6.1"
+version = "0.7.0"
 description = "SDK для Smartis API"
 license = "MIT"
 authors = ["viktor <vi.dave@yandex.ru>"]
@@ -25,7 +25,7 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 
 # Enable Pyflakes `E` and `F` codes by default.
-select = ["E", "F", "UP", "ANN", "B"]
+select = ["E", "F", "UP", "ANN", "B", "W","S", "BLE", "RUF"]
 ignore = ["E501", "ANN204", "ANN101"]
 
 # Exclude a variety of commonly ignored directories.
